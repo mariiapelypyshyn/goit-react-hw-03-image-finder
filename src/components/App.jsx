@@ -19,6 +19,7 @@ class App extends Component {
     totalHits: 0,
   };
 
+
   handleSubmit = async inputData => {
     page = 1;
     if (inputData.trim() === '') {
@@ -46,6 +47,14 @@ class App extends Component {
       }
     }
   };
+
+// componentDidUpdate(_, prevState){
+//   if(this.state.page !== prevState.page || this.state.inputData!== prevState.inputData ){
+//   fetchImages();
+//   }
+// } 
+
+
   onNextPage = async () => {
     this.setState({ status: 'pending' });
 
