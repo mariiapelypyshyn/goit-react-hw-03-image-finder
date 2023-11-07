@@ -7,7 +7,6 @@ import Notiflix from 'notiflix';
 import Loader from './Loader/Loader';
 import css from './App.module.css';
 
-
 let page = 1;
 
 class App extends Component {
@@ -19,16 +18,15 @@ class App extends Component {
     totalHits: 0,
   };
 
+  handleSubmit = inputData => {
+    this.setState({ inputData });
+  }
 
-  handleSubmit = async inputData => {
-    page = 1;
-    if (inputData.trim() === '') {
-      Notiflix.Notify.info('You cannot search by empty field, try again.');
-      return;
-    } else {
-      try {
+async componentDidUpdate(_, prevState){
+  if(this.state.inputData !== prevState.inputData ){
+    try {
         this.setState({ status: 'pending' });
-        const { totalHits, hits } = await fetchImages(inputData, page);
+        const { totalHits, hits } = await fetchImages(this.state.inputData);
         if (hits.length < 1) {
           this.setState({ status: 'idle' });
           Notiflix.Notify.failure(
@@ -37,7 +35,6 @@ class App extends Component {
         } else {
           this.setState({
             items: hits,
-            inputData,
             totalHits: totalHits,
             status: 'resolved',
           });
@@ -46,15 +43,10 @@ class App extends Component {
         this.setState({ status: 'rejected' });
       }
     }
-  };
+    
+        }
 
-// componentDidUpdate(_, prevState){
-//   if(this.state.page !== prevState.page || this.state.inputData!== prevState.inputData ){
-//   fetchImages();
-//   }
-// } 
-
-
+  
   onNextPage = async () => {
     this.setState({ status: 'pending' });
 

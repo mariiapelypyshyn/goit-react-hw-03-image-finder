@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import css from './Searchbar.module.css';
+import Notiflix from 'notiflix';
 
 export default class Searchbar extends Component {
 
@@ -13,6 +14,11 @@ export default class Searchbar extends Component {
   
     handleSubmit = e => {
         e.preventDefault();
+
+        if (this.state.inputData.trim() === '') {
+            Notiflix.Notify.info('You cannot search by empty field, try again.');
+            return;
+        }
         this.props.onSubmit(this.state.inputData);
         this.setState({ inputData: ''})
     }
