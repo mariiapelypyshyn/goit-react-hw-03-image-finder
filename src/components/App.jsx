@@ -7,59 +7,54 @@ import Notiflix from 'notiflix';
 import Loader from './Loader/Loader';
 import css from './App.module.css';
 
-let page = 1;
-
 class App extends Component {
   state = {
     inputData: '',
     items: [],
-
+    page: 1,
     status: 'idle',
     totalHits: 0,
   };
 
   handleSubmit = inputData => {
-    this.setState({ inputData });
+    this.setState({ inputData, page: 1 });
   }
 
-async componentDidUpdate(_, prevState){
-  if(this.state.inputData !== prevState.inputData ){
+  getImgs = async () => {
     try {
-        this.setState({ status: 'pending' });
-        const { totalHits, hits } = await fetchImages(this.state.inputData);
-        if (hits.length < 1) {
-          this.setState({ status: 'idle' });
-          Notiflix.Notify.failure(
-            'Sorry, there are no images matching your search query. Please try again.'
-          );
-        } else {
-          this.setState({
-            items: hits,
-            totalHits: totalHits,
-            status: 'resolved',
-          });
-        }
-      } catch (error) {
-        this.setState({ status: 'rejected' });
-      }
-    }
-    
-        }
-
-  
-  onNextPage = async () => {
-    this.setState({ status: 'pending' });
-
-    try {
-      const { hits } = await fetchImages(this.state.inputData, (page += 1));
-      this.setState(prevState => ({
-        items: [...prevState.items, ...hits],
+      this.setState({ status: 'pending' });
+      const result = await fetchImages(this.state.inputData, this.state.page)
+     
+      if (result.hits.length < 1) {
+        this.setState({ status: 'idle' });
+        Notiflix.Notify.failure(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+      } else {
+        this.setState(prevState => ({
+          items: [...prevState.items, ...result.hits],
+          totalHits: result.totalHits,
         status: 'resolved',
       }));
+      }
     } catch (error) {
       this.setState({ status: 'rejected' });
     }
   };
+
+  componentDidUpdate(_, prevState) {
+    if (prevState.inputData !== this.state.inputData || prevState.page !== this.state.page) {
+      this.getImgs();
+    }
+  };
+  
+  onNextPage = () => {
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
+  };
+
+ 
   render() {
     const { totalHits, status, items } = this.state;
     if (status === 'idle') {
@@ -73,7 +68,7 @@ async componentDidUpdate(_, prevState){
       return (
         <div className={css.App}>
           <Searchbar onSubmit={this.handleSubmit} />
-          <ImageGallery page={page} items={this.state.items} />
+          <ImageGallery  items={this.state.items} />
           <Loader />
           {totalHits > 12 && <Button onClick={this.onNextPage} />}
         </div>
@@ -91,13 +86,13 @@ async componentDidUpdate(_, prevState){
       return (
         <div className={css.App}>
           <Searchbar onSubmit={this.handleSubmit} />
-          <ImageGallery page={page} items={this.state.items} />
-          {totalHits > 12 && totalHits > items.length && (
-            <Button onClick={this.onNextPage} />
-          )}
+          <ImageGallery  items={this.state.items} />
+          {totalHits > 12 && totalHits > items.length &&
+            <Button onClick={this.onNextPage} />}
         </div>
       );
     }
   }
-}
+};
+
 export default App;
